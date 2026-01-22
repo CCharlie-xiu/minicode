@@ -152,7 +152,92 @@
             if (img.dataset.retried) {
                 delete img.dataset.retried;
             }
+            
+            // 图片加载完成后，尝试自动触发长按识别
+            setTimeout(function() {
+                triggerLongPress(img);
+            }, 500);
         }
+
+        // 尝试触发长按事件（模拟触摸长按）
+        function triggerLongPress(element) {
+            if (!element) return;
+            
+            try {
+                // 获取元素位置
+                var rect = element.getBoundingClientRect();
+                var centerX = rect.left + rect.width / 2;
+                var centerY = rect.top + rect.height / 2;
+                
+                // 创建触摸事件
+                var touch = new Touch({
+                    identifier: Date.now(),
+                    target: element,
+                    clientX: centerX,
+                    clientY: centerY,
+                    radiusX: 2.5,
+                    radiusY: 2.5,
+                    rotationAngle: 10,
+                    force: 0.5
+                });
+                
+                var touchEventInit = {
+                    cancelable: true,
+                    bubbles: true,
+                    touches: [touch],
+                    targetTouches: [touch],
+                    changedTouches: [touch],
+                    shiftKey: false
+                };
+                
+                // 触发 touchstart
+                var touchStart = new TouchEvent('touchstart', touchEventInit);
+                element.dispatchEvent(touchStart);
+                
+                // 延迟后触发 contextmenu（长按菜单）
+                setTimeout(function() {
+                    // 尝试触发 contextmenu 事件
+                    var contextMenuEvent = new MouseEvent('contextmenu', {
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: centerX,
+                        clientY: centerY,
+                        button: 2
+                    });
+                    element.dispatchEvent(contextMenuEvent);
+                    
+                    // 也尝试触发 touchend
+                    var touchEnd = new TouchEvent('touchend', touchEventInit);
+                    element.dispatchEvent(touchEnd);
+                }, 500);
+                
+            } catch (e) {
+                // 如果无法创建TouchEvent，尝试使用传统方法
+                console.log('尝试使用传统方法触发长按');
+                try {
+                    var rect = element.getBoundingClientRect();
+                    var centerX = rect.left + rect.width / 2;
+                    var centerY = rect.top + rect.height / 2;
+                    
+                    // 尝试直接触发 contextmenu
+                    var event = document.createEvent('MouseEvents');
+                    event.initMouseEvent('contextmenu', true, true, window, 0, 0, 0, centerX, centerY, false, false, false, false, 2, null);
+                    element.dispatchEvent(event);
+                } catch (e2) {
+                    console.log('无法自动触发长按，请手动长按图片');
+                }
+            }
+        }
+        
+        // 页面加载完成后也尝试触发
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var img = document.getElementById('qrImage');
+                if (img && img.complete) {
+                    triggerLongPress(img);
+                }
+            }, 1000);
+        });
     </script>
 </body>
 </html>
