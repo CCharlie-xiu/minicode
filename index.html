@@ -52,15 +52,21 @@
         }
 
         .hint {
-            color: #666666;
-            font-size: 14px;
+            color: #333333;
+            font-size: 20px;
+            font-weight: bold;
             text-align: center;
             line-height: 1.6;
             padding: 0 20px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .hint-text {
             margin-bottom: 8px;
+            color: #1890ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .error-message {
@@ -85,7 +91,11 @@
             }
 
             .hint {
-                font-size: 13px;
+                font-size: 18px;
+            }
+            
+            .hint-text {
+                font-size: 20px;
             }
         }
     </style>
@@ -93,7 +103,7 @@
 <body>
     <div class="container">
         <div class="qr-wrapper">
-            <img src="jump.png" alt="二维码" class="qr-code" id="qrImage" 
+            <img src="" alt="二维码" class="qr-code" id="qrImage" 
                  onerror="handleImageError(this)" 
                  onload="handleImageLoad(this)">
         </div>
@@ -106,6 +116,23 @@
     </div>
 
     <script>
+        // 获取URL参数
+        function getUrlParam(name) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 根据环境参数获取对应的二维码图片文件名
+        function getQrImageName() {
+            var env = getUrlParam('env');
+            // env=dev 或 env=test 显示体验版，其他或默认显示正式版
+            if (env === 'dev' || env === 'test') {
+                return 'jumpdev.png';
+            } else {
+                return 'jump.png';
+            }
+        }
+        
         // 页面加载时立即处理图片路径
         (function() {
             var img = document.getElementById('qrImage');
@@ -114,11 +141,14 @@
                 var currentPath = window.location.href;
                 var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
                 
+                // 根据URL参数获取对应的图片文件名
+                var imageName = getQrImageName();
+                
                 // 如果src是相对路径，转换为绝对路径
                 if (img.src && !img.src.startsWith('http') && !img.src.startsWith('data:') && !img.src.startsWith('/')) {
-                    img.src = basePath + 'jump.png';
+                    img.src = basePath + imageName;
                 } else if (!img.src || img.src === window.location.href) {
-                    img.src = basePath + 'jump.png';
+                    img.src = basePath + imageName;
                 }
             }
         })();
@@ -134,7 +164,8 @@
             // 尝试使用绝对路径
             var currentPath = window.location.href;
             var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-            var newSrc = basePath + 'jump.png';
+            var imageName = getQrImageName();
+            var newSrc = basePath + imageName;
             
             // 避免无限循环
             if (img.src !== newSrc && !img.dataset.retried) {
@@ -241,4 +272,3 @@
     </script>
 </body>
 </html>
-
